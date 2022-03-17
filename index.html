@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>textmemo</title>
+    </head>
+    <body style="font-family:sans-serif">
+        <h1>textmemo - quickly dictate your thoughts</h1>
+        <p>note: currently only works on <a target="_blank" href="https://caniuse.com/speech-recognition">these browsers</a></p>
+        <p><button id="audio">start dictation</button> <button id="copy">copy to clipboard</button></p>
+        <div style="outline:0"><span id="final"></span><span id="interim" style="color:#999999"></span></div>
+        <script>
+            const speech = new webkitSpeechRecognition();
+            const audio = document.querySelector("button#audio");
+            const copy = document.querySelector("button#copy");
+            let on = false;
+            speech.continuous = true;
+            speech.interimResults = true;
+            let final = "";
+            speech.addEventListener("result", evt => {
+                let interim = "";
+                for (let i = evt.resultIndex; i < evt.results.length; i++) {
+                    if (evt.results[i].isFinal) {
+                        final += evt.results[i][0].transcript;
+                    } else {
+                        interim += evt.results[i][0].transcript;
+                    }
+                    document.querySelector("span#final").innerHTML = final;
+                    document.querySelector("span#interim").innerHTML = interim;
+                }
+            });
+            audio.addEventListener("click", evt => {
+                if (!on) {
+                    on = true;
+                    audio.innerHTML = "pause dictation";
+                    document.querySelector("div").contentEditable = false;
+                    final = document.querySelector("div").innerText;
+                    speech.start();
+                } else {
+                    on = false;
+                    audio.innerHTML = "resume dictation";
+                    speech.stop();
+                    document.querySelector("div").contentEditable = true;
+                }
+            });
+            copy.addEventListener("click", evt => {
+                navigator.clipboard.writeText(document.querySelector("div").innerText);
+            });
+        </script>
+    </body>
+</html>
